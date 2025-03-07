@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3xds App Installer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #0078d4, #0047ab);
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+            padding: 0 20px;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .category-tabs button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            background: #e0e0e0;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .category-tabs button.active {
+            background: #0078d4;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .category-tabs button:hover {
+            transform: translateY(-1px);
+        }
+
+        .search-container {
+            flex-grow: 1;
+            max-width: 400px;
+        }
+
+        #searchInput {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: #0078d4;
+            box-shadow: 0 0 8px rgba(0,120,212,0.3);
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .app-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+
+        .app-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .app-card img {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 15px;
+            object-fit: contain;
+        }
+
+        .checkbox-container {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #0078d4;
+        }
+
+        .download-btn {
+            background: #0078d4;
+            color: white;
+            padding: 10px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .download-btn:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .download-all {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 16px 35px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .download-all:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .download-all:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .credits {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            color: #fff;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.75);
+            padding: 10px 20px;
+            border-radius: 30px;
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .credits:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .credits::before {
+            content: "👨💻";
+            font-size: 18px;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+        }
+
+        .credits span {
+            color: #00ff9d;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 4px rgba(0,255,157,0.15);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Bulk App Installer</h1>
+        <p>Select multiple apps and download them all at once</p>
+    </header>
+
+    <a href="#" class="credits">
+        Made by <span>3xds</span>
+    </a>
+
+    <div class="controls">
+        <div class="category-tabs" id="categoryTabs">
+            <button class="active" onclick="setCategory('all')">All</button>
+            <button onclick="setCategory('browser')">Browsers</button>
+            <button onclick="setCategory('media')">Media</button>
+            <button onclick="setCategory('utility')">Utilities</button>
+            <button onclick="setCategory('gaming')">Gaming</button>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search apps..." onkeyup="filterApps()">
+        </div>
+    </div>
+
+    <div class="app-grid" id="appGrid"></div>
+    <button class="download-all" id="downloadAll" disabled onclick="downloadSelected()">Download Selected (0)</button>
+
+    <script>
+        let selectedApps = [];
+        let currentCategory = 'all';
+        let currentSearch = '';
+
+        const apps = [
+
+            //browser
+            {
+                name: "Mozilla Firefox",
+                icon: "https://upload.wikimedia.org/wikipedia/commons/a/a0/Firefox_logo%2C_2019.svg",
+                downloadUrl: "https://www.mozilla.org/en-GB/firefox/download/thanks/",
+                category: "browser"
+            },
+            {
+                name: "Google Chrome",
+                icon: "https://upload.wikimedia.org/wikipedia/commons/e/e1/Google_Chrome_icon_%28February_2022%29.svg",
+                downloadUrl: "https://www.google.com/chrome/",
+                category: "browser"
+            },
+
+
+            //media
+            {
+                name: "VLC Media Player",
+                icon: "https://images.videolan.org/images/icons-VLC/vlc.mini.svg",
+                downloadUrl: "https://get.videolan.org/vlc/3.0.21/win64/vlc-3.0.21-win64.exe",
+                category: "media"
+            },
+            {
+                name: "Spotify",
+                icon: "https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg",
+                downloadUrl: "https://download.scdn.co/SpotifySetup.exe",
+                category: "media"
+            },
+
+            //utility
+            {
+                name: "7-Zip",
+                icon: "https://7-zip.org/7ziplogo.png",
+                downloadUrl: "https://www.7-zip.org/a/7z2409-x64.exe",
+                category: "utility"
+            },
+            
+            //gaming
+            {
+                name: "Steam",
+                icon: "https://store.akamai.steamstatic.com/public/shared/images/responsive/share_steam_logo.png",
+                downloadUrl: "https://cdn.fastly.steamstatic.com/client/installer/SteamSetup.exe",
+                category: "gaming"
+            },
+            {
+                name: "Minecraft Launcher",
+                icon: "https://art.pixilart.com/1c020ec9c3ce31a.png",
+                downloadUrl: "https://aka.ms/minecraftClientGameCoreWindows",
+                category: "gaming"
+            }
+
+        ];
+
+        function createAppCard(app) {
+            const card = document.createElement('div');
+            card.className = 'app-card';
+            card.innerHTML = `
+                <img src="${app.icon}" alt="${app.name}">
+                <h3>${app.name}</h3>
+                <div class="checkbox-container">
+                    <input type="checkbox" id="${app.name}" 
+                        ${selectedApps.includes(app) ? 'checked' : ''}
+                        onchange="toggleSelection('${app.name}')">
+                    <label for="${app.name}">Select</label>
+                </div>
+                <button class="download-btn" 
+                        onclick="window.open('${app.downloadUrl}', '_blank')">
+                    Download Now
+                </button>
+            `;
+            return card;
+        }
+
+        function toggleSelection(appName) {
+            const app = apps.find(a => a.name === appName);
+            const index = selectedApps.indexOf(app);
+            
+            if (index === -1) {
+                selectedApps.push(app);
+            } else {
+                selectedApps.splice(index, 1);
+            }
+
+            updateDownloadButton();
+        }
+
+        function updateDownloadButton() {
+            const btn = document.getElementById('downloadAll');
+            btn.disabled = selectedApps.length === 0;
+            btn.textContent = `Download Selected (${selectedApps.length})`;
+        }
+
+        function downloadSelected() {
+            selectedApps.forEach(app => {
+                window.open(app.downloadUrl, '_blank');
+            });
+        }
+
+        function setCategory(category) {
+            currentCategory = category;
+            document.querySelectorAll('.category-tabs button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            filterApps();
+        }
+
+        function filterApps() {
+            currentSearch = document.getElementById('searchInput').value.toLowerCase();
+            const appGrid = document.getElementById('appGrid');
+            appGrid.innerHTML = '';
+            
+            apps.filter(app => {
+                const matchesCategory = currentCategory === 'all' || app.category === currentCategory;
+                const matchesSearch = app.name.toLowerCase().includes(currentSearch);
+                return matchesCategory && matchesSearch;
+            }).forEach(app => {
+                appGrid.appendChild(createAppCard(app));
+            });
+        }
+
+        // Initial load
+        filterApps();
+    </script>
+</body>
+</html>
