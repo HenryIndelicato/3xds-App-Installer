@@ -362,6 +362,21 @@
             });
         }
 
+        function downloadSelected() {
+            let testPopup = window.open("", "_blank");
+
+            if (!testPopup || testPopup.closed || typeof testPopup.closed === "undefined") {
+                alert("Pop-ups are blocked! Please allow pop-ups for this site.");
+                return;
+            }
+            testPopup.close();
+
+            selectedApps.forEach(app => {
+                let newWindow = window.open(app.downloadUrl, "_blank");
+                if (!newWindow) alert(`Pop-up blocked for ${app.name}. Enable pop-ups.`);
+            });
+        }
+
         // Initial load
         filterApps();
     </script>
