@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk App Installer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            color: #333;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .dark-mode {
+            background-color: #121212;
+            color: white;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #0078d4, #0047ab);
+            color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .dark-mode header {
+            background: linear-gradient(135deg, #0047ab, #002366);
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .category-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .category-tabs button {
+            padding: 8px 15px;
+            border: none;
+            background: #0078d4;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .dark-mode .category-tabs button {
+            background: #0056b3;
+        }
+        .category-tabs button.active {
+            background: #0056b3;
+        }
+        .search-container input {
+            padding: 8px;
+            width: 250px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .dark-mode .search-container input {
+            background-color: #1e1e1e;
+            color: white;
+            border-color: #555;
+        }
+        .app-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            padding: 20px;
+        }
+        .app-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        .dark-mode .app-card {
+            background: #1e1e1e;
+            box-shadow: 0 1px 3px rgba(255, 255, 255, 0.1);
+        }
+        .app-card img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .checkbox-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #0078d4;
+        }
+        .download-btn, .dark-mode-toggle {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background: #0078d4;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .dark-mode .download-btn, .dark-mode .dark-mode-toggle {
+            background: #0056b3;
+        }
+        .credits {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+        .dark-mode .credits {
+            color: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Bulk App Installer</h1>
+        <p>Select multiple apps and download them all at once</p>
+    </header>
+
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+    
+    <div class="controls">
+        <div class="category-tabs" id="categoryTabs"></div>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search apps..." onkeyup="filterApps()">
+        </div>
+    </div>
+    
+    <div class="app-grid" id="appGrid"></div>
+    <button class="download-btn" onclick="downloadSelected()">Download Selected</button>
+    
+    <p class="credits">Made by <strong>3xds</strong></p>
+
+    <script>
+        const apps = [
+            // Browser
+            { "name": "Brave", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Brave_lion_icon.svg/640px-Brave_lion_icon.svg.png", "downloadUrl": "https://laptop-updates.brave.com/download/BRV013?bitness=64", "category": "browser" },
+            { "name": "OperaGX", "icon": "https://upload.wikimedia.org/wikipedia/commons/e/e7/Opera_GX_Icon.svg", "downloadUrl": "https://www.opera.com/computer/thanks?ni=eapgx&os=windows", "category": "browser" },
+            { "name": "Opera", "icon": "https://uxwing.com/wp-content/themes/uxwing/download/brands-and-social-media/opera-icon.png", "downloadUrl": "https://www.opera.com/computer/thanks?ni=stable&os=windows", "category": "browser" },
+            { "name": "Mozilla Firefox", "icon": "https://upload.wikimedia.org/wikipedia/commons/a/a0/Firefox_logo%2C_2019.svg", "downloadUrl": "https://www.mozilla.org/en-GB/firefox/download/thanks/", "category": "browser" },
+            { "name": "Google Chrome", "icon": "https://upload.wikimedia.org/wikipedia/commons/e/e1/Google_Chrome_icon_%28February_2022%29.svg", "downloadUrl": "https://www.google.com/chrome/", "category": "browser" },
+
+            // Media
+            { "name": "Spotify", "icon": "https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg", "downloadUrl": "https://download.scdn.co/SpotifySetup.exe", "category": "media" },
+            { "name": "VLC Media Player", "icon": "https://images.videolan.org/images/icons-VLC/vlc.mini.svg", "downloadUrl": "https://get.videolan.org/vlc/3.0.21/win64/vlc-3.0.21-win64.exe", "category": "media" },
+            { "name": "iTunes", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/ITunes_logo.svg/640px-ITunes_logo.svg.png", "downloadUrl": "https://www.apple.com/itunes/download/win64/", "category": "media" },
+            { "name": "Audacity", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Audacity_Logo_nofilter.svg/640px-Audacity_Logo_nofilter.svg.png", "downloadUrl": "https://github.com/audacity/audacity/releases/download/Audacity-3.7.1/audacity-win-3.7.1-64bit.exe", "category": "media" },
+            { "name": "HandBrake", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/HandBrake_Icon.png/640px-HandBrake_Icon.png", "downloadUrl": "https://handbrake.fr/rotation.php?file=HandBrake-1.9.2-x86_64-Win_GUI.exe", "category": "media" },
+
+            // File Sharing
+            { "name": "qBittorrent", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/New_qBittorrent_Logo.svg/640px-New_qBittorrent_Logo.svg.png", "downloadUrl": "https://www.fosshub.com/qBittorrent.html", "category": "filesharing" },
+
+            // Utility
+            { "name": "7-Zip", "icon": "https://7-zip.org/7ziplogo.png", "downloadUrl": "https://www.7-zip.org/a/7z2409-x64.exe", "category": "utility" },
+            { "name": "WinRAR", "icon": "https://img.icons8.com/?size=256&id=PLvn50bVGAlA&format=png", "downloadUrl": "https://www.win-rar.com/postdownload.html?&L=0", "category": "utility" },
+            { "name": "AnyDesk", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/AnyDesk-logo.svg/640px-AnyDesk-logo.svg.png", "downloadUrl": "https://anydesk.com/en/downloads/thank-you?dv=win_exe", "category": "utility" },
+            { "name": "TeamViewer", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/TeamViewer_Icon.svg/640px-TeamViewer_Icon.svg.png", "downloadUrl": "https://download.teamviewer.com/download/TeamViewer_Setup_x64.exe", "category": "utility" },
+            { "name": "Revo", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Revouninstallerpro_icon.png/640px-Revouninstallerpro_icon.png", "downloadUrl": "https://www.revouninstaller.com/start-freeware-download/", "category": "utility" },
+
+            // Online Storage
+            { "name": "Dropbox", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Dropbox_Icon.svg/640px-Dropbox_Icon.svg.png", "downloadUrl": "https://www.dropbox.com/download?os=win&plat=win", "category": "onlinestorage" },
+            { "name": "Google Drive", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Google_Drive_icon_%282020%29.svg/640px-Google_Drive_icon_%282020%29.svg.png", "downloadUrl": "https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe", "category": "onlinestorage" },
+            { "name": "OneDrive", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Microsoft_Office_OneDrive_%282019%E2%80%93present%29.svg/640px-Microsoft_Office_OneDrive_%282019%E2%80%93present%29.svg.png", "downloadUrl": "https://go.microsoft.com/fwlink/p/?LinkID=2182910&clcid=0x809&culture=en-gb&country=gb", "category": "onlinestorage" },
+
+            // Gaming
+            { "name": "Steam", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Steam_icon_logo.svg/640px-Steam_icon_logo.svg.png", "downloadUrl": "https://cdn.fastly.steamstatic.com/client/installer/SteamSetup.exe", "category": "gaming" },
+            { "name": "Minecraft Launcher", "icon": "https://art.pixilart.com/1c020ec9c3ce31a.png", "downloadUrl": "https://aka.ms/minecraftClientGameCoreWindows", "category": "gaming" },
+
+            // Messaging
+            { "name": "Discord", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/Discord_Color_Text_Logo_%282015-2021%29.svg/640px-Discord_Color_Text_Logo_%282015-2021%29.svg.png", "downloadUrl": "https://discord.com/api/downloads/distributions/app/installers/latest?channel=stable&platform=win&arch=x64", "category": "messaging" },
+            { "name": "Zoom", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Zoom_Logo_2022.jpg/640px-Zoom_Logo_2022.jpg", "downloadUrl": "https://zoom.us/client/6.3.11.60501/ZoomInstallerFull.exe?archType=x64", "category": "messaging" },
+            { "name": "Skype", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Skype-icon-new.png/640px-Skype-icon-new.png", "downloadUrl": "https://go.skype.com/skype.download", "category": "messaging" },
+
+            // Developer Tools
+            { "name": "Visual Studio Code", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Visual_Studio_Code_1.35_icon.svg/640px-Visual_Studio_Code_1.35_icon.svg.png", "downloadUrl": "https://code.visualstudio.com/sha/download?build=stable&os=win32-x64-user", "category": "developertools" },
+            { "name": "PuTTY", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/PuTTY_Icon_upstream.svg/640px-PuTTY_Icon_upstream.svg.png", "downloadUrl": "https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html", "category": "developertools" },
+            { "name": "Eclipse", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Eclipse-Luna-Logo.svg/640px-Eclipse-Luna-Logo.svg.png", "downloadUrl": "https://www.eclipse.org/downloads/packages", "category": "developertools" },
+            { "name": "WinSCP", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4f/WinSCP_6_Logo.png/640px-WinSCP_6_Logo.png", "downloadUrl": "https://winscp.net/download/WinSCP-6.3.7-Setup.exe/download", "category": "developertools" },
+            { "name": "Notepad++", "icon": "https://th.bing.com/th/id/R.16f13dde636a802e017385f945a4e398?rik=7jNdVVCwj%2bNmkw&riu=http%3a%2f%2f3.bp.blogspot.com%2f-cIXwhDwD2zM%2fVJfaTMbyeLI%2fAAAAAAAAAW0%2f4mM8vHJGIJc%2fs1600%2fnotepad_____application_icon_by_ravenbasix-d5ohwq7.png&ehk=p9RInm%2bNfyFCm17UsSmu%2b0r%2beFlqgnOuDdbYBa5DqjM%3d&risl=&pid=ImgRaw&r=0", "downloadUrl": "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.7.7/npp.8.7.7.Installer.x64.exe", "category": "developertools" },
+            { "name": "FileZilla", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/FileZilla_logo.svg/640px-FileZilla_logo.svg.png", "downloadUrl": "https://download.filezilla-project.org/client/FileZilla_3.68.1_win64_sponsored2-setup.exe", "category": "developertools" },
+            { "name": "FileZilla Server", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/01/FileZilla_logo.svg/640px-FileZilla_logo.svg.png", "downloadUrl": "https://dl4.cdn.filezilla-project.org/server/FileZilla_Server_1.9.4_win64-setup.exe?h=zN3Y5MnnGVIbL-SKfYJfSQ&x=1741373942", "category": "developertools" },
+            { "name": "Python", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/640px-Python-logo-notext.svg.png", "downloadUrl": "https://www.python.org/ftp/python/3.13.2/python-3.13.2-amd64.exe", "category": "developertools" },
+
+            // Imaging
+            { "name": "Blender", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Blender_logo_no_text.svg/640px-Blender_logo_no_text.svg.png", "downloadUrl": "https://www.blender.org/download/release/Blender4.3/blender-4.3.2-windows-x64.msi/", "category": "imaging" },
+            { "name": "Paint.NET", "icon": "https://getpaint.net/images/Logo4.png", "downloadUrl": "https://github.com/paintdotnet/release/releases/download/v5.1.4/paint.net.5.1.4.install.anycpu.web.zip", "category": "imaging" },
+            { "name": "ShareX", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/ShareX_Logo.png/640px-ShareX_Logo.png", "downloadUrl": "https://github.com/ShareX/ShareX/releases/download/v17.0.0/ShareX-17.0.0-setup.exe", "category": "imaging" }
+        ];
+
+        let selectedApps = [];
+        let currentCategory = 'all';
+
+        function renderCategories() {
+            const categories = [...new Set(apps.map(app => app.category))];
+            const categoryTabs = document.getElementById("categoryTabs");
+            
+            // Create 'All' button with active class
+            const allButton = document.createElement("button");
+            allButton.textContent = "All";
+            allButton.classList.add('active');
+            allButton.onclick = () => setCategory('all');
+            categoryTabs.appendChild(allButton);
+
+            // Create other category buttons
+            categories.forEach(category => {
+                const button = document.createElement("button");
+                button.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+                button.onclick = () => setCategory(category);
+                categoryTabs.appendChild(button);
+            });
+        }
+
+        function createAppCard(app) {
+            const card = document.createElement('div');
+            card.className = 'app-card';
+            card.innerHTML = `
+                <img src="${app.icon}" alt="${app.name}">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="${app.name}" 
+                        ${selectedApps.includes(app) ? 'checked' : ''}
+                        onchange="toggleSelection('${app.name}')">
+                    <label for="${app.name}">${app.name}</label>
+                </div>
+            `;
+            return card;
+        }
+
+        function toggleSelection(appName) {
+            const app = apps.find(a => a.name === appName);
+            const index = selectedApps.indexOf(app);
+            
+            if (index === -1) {
+                selectedApps.push(app);
+            } else {
+                selectedApps.splice(index, 1);
+            }
+            updateDownloadButton();
+        }
+
+        function updateDownloadButton() {
+            const btn = document.querySelector('.download-btn');
+            btn.textContent = `Download Selected (${selectedApps.length})`;
+            btn.disabled = selectedApps.length === 0;
+        }
+
+        function setCategory(category) {
+            currentCategory = category;
+            const buttons = document.querySelectorAll('.category-tabs button');
+            
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                if(btn.textContent.toLowerCase() === category.toLowerCase() || 
+                   (category === 'all' && btn.textContent === 'All')) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            filterApps();
+        }
+
+        function filterApps() {
+            const searchTerm = document.getElementById("searchInput").value.toLowerCase();
+            const appGrid = document.getElementById("appGrid");
+            appGrid.innerHTML = "";
+            
+            apps.filter(app => {
+                const matchesCategory = currentCategory === 'all' || app.category === currentCategory;
+                const matchesSearch = app.name.toLowerCase().includes(searchTerm);
+                return matchesCategory && matchesSearch;
+            }).forEach(app => {
+                appGrid.appendChild(createAppCard(app));
+            });
+        }
+
+        function downloadSelected() {
+            if (selectedApps.length === 0) {
+                alert("Please select at least one app to download.");
+                return;
+            }
+
+            // Check if pop-ups are allowed
+            const testPopup = window.open("", "_blank");
+            if (!testPopup || testPopup.closed) {
+                alert("Pop-ups are blocked! Please allow pop-ups for this site.");
+                return;
+            }
+            testPopup.close();
+
+            // Open download links with delay to prevent blocking
+            selectedApps.forEach((app, index) => {
+                setTimeout(() => {
+                    window.open(app.downloadUrl, '_blank');
+                }, index * 1000);
+            });
+
+            selectedApps = [];
+            updateDownloadButton();
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+            localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
+        }
+
+        // Initialize
+        if (localStorage.getItem("darkMode") === "true") {
+            document.body.classList.add("dark-mode");
+        }
+        renderCategories();
+        filterApps();
+    </script>
+</body>
+</html>
