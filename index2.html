@@ -291,28 +291,18 @@
         }
 
         function downloadSelected() {
-            if (selectedApps.length === 0) {
-                alert("Please select at least one app to download.");
-                return;
-            }
+            let testPopup = window.open("", "_blank");
 
-            // Check if pop-ups are allowed
-            const testPopup = window.open("", "_blank");
-            if (!testPopup || testPopup.closed) {
+            if (!testPopup || testPopup.closed || typeof testPopup.closed === "undefined") {
                 alert("Pop-ups are blocked! Please allow pop-ups for this site.");
                 return;
             }
             testPopup.close();
 
-            // Open download links with delay to prevent blocking
-            selectedApps.forEach((app, index) => {
-                setTimeout(() => {
-                    window.open(app.downloadUrl, '_blank');
-                }, index * 1000);
+            selectedApps.forEach(app => {
+                let newWindow = window.open(app.downloadUrl, "_blank");
+                if (!newWindow) alert(`Pop-up blocked for ${app.name}. Enable pop-ups.`);
             });
-
-            selectedApps = [];
-            updateDownloadButton();
         }
 
         function toggleDarkMode() {
