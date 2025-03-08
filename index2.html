@@ -200,9 +200,9 @@
             { "name": "Python", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Python-logo-notext.svg/640px-Python-logo-notext.svg.png", "downloadUrl": "https://www.python.org/ftp/python/3.13.2/python-3.13.2-amd64.exe", "category": "developer Tools" },
 
             // Imaging
-            { "name": "Blender", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Blender_logo_no_text.svg/640px-Blender_logo_no_text.svg.png", "downloadUrl": "https://www.blender.org/download/release/Blender4.3/blender-4.3.2-windows-x64.msi/", "category": "imaging" },
-            { "name": "Paint.NET", "icon": "https://getpaint.net/images/Logo4.png", "downloadUrl": "https://github.com/paintdotnet/release/releases/download/v5.1.4/paint.net.5.1.4.install.anycpu.web.zip", "category": "imaging" },
-            { "name": "ShareX", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/ShareX_Logo.png/640px-ShareX_Logo.png", "downloadUrl": "https://github.com/ShareX/ShareX/releases/download/v17.0.0/ShareX-17.0.0-setup.exe", "category": "imaging" }
+            { "name": "Blender", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/Blender_logo_no_text.svg/640px-Blender_logo_no_text.svg.png", "downloadUrl": "https://www.blender.org/download/release/Blender4.3/blender-4.3.2-windows-x64.msi/", "category": "Imaging" },
+            { "name": "Paint.NET", "icon": "https://getpaint.net/images/Logo4.png", "downloadUrl": "https://github.com/paintdotnet/release/releases/download/v5.1.4/paint.net.5.1.4.install.anycpu.web.zip", "category": "Imaging" },
+            { "name": "ShareX", "icon": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/ShareX_Logo.png/640px-ShareX_Logo.png", "downloadUrl": "https://github.com/ShareX/ShareX/releases/download/v17.0.0/ShareX-17.0.0-setup.exe", "category": "Imaging" }
         ];
 
         let selectedApps = [];
@@ -221,8 +221,14 @@
 
             // Create other category buttons
             categories.forEach(category => {
-                const button = document.createElement("button");
-                button.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+            const button = document.createElement("button");
+    
+            // Handle spaces and capitalize each word
+            const formattedCategory = category.split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+    
+                button.textContent = formattedCategory;
                 button.onclick = () => setCategory(category);
                 categoryTabs.appendChild(button);
             });
